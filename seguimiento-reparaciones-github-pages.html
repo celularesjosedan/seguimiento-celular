@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Seguimiento de reparaciones</title>
+  <meta name="description" content="Seguimiento de reparaciones para clientes, listo para GitHub Pages y Google Sheets." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --surface: #ffffff;
+      --surface-2: #eef2ff;
+      --border: rgba(15, 23, 42, 0.1);
+      --text: #0f172a;
+      --muted: #475569;
+      --primary: #0f766e;
+      --primary-2: #115e59;
+      --success: #166534;
+      --warning: #b45309;
+      --danger: #b91c1c;
+      --shadow: 0 10px 30px rgba(2, 8, 23, 0.08);
+      --radius: 18px;
+      --radius-sm: 12px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 20px;
+      --space-6: 24px;
+      --space-8: 32px;
+      --space-10: 40px;
+      --space-12: 48px;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0b1220;
+      --surface: #111827;
+      --surface-2: #172033;
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #e5eefc;
+      --muted: #94a3b8;
+      --primary: #2dd4bf;
+      --primary-2: #14b8a6;
+      --success: #4ade80;
+      --warning: #f59e0b;
+      --danger: #f87171;
+      --shadow: 0 14px 40px rgba(0, 0, 0, 0.34);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, sans-serif;
+      background: linear-gradient(180deg, var(--bg) 0%, color-mix(in srgb, var(--bg) 75%, #dbeafe 25%) 100%);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    a { color: inherit; }
+    button, input {
+      font: inherit;
+    }
+    .container {
+      width: min(1080px, calc(100% - 24px));
+      margin: 0 auto;
+    }
+    .skip-link {
+      position: absolute;
+      left: 12px;
+      top: -100px;
+      background: var(--primary);
+      color: white;
+      padding: 10px 14px;
+      border-radius: 10px;
+      z-index: 1000;
+    }
+    .skip-link:focus { top: 12px; }
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(12px);
+      background: color-mix(in srgb, var(--bg) 84%, transparent 16%);
+      border-bottom: 1px solid var(--border);
+    }
+    .topbar-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-4);
+      padding: 14px 0;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+    .brand-mark {
+      width: 44px;
+      height: 44px;
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      color: #fff;
+      box-shadow: var(--shadow);
+      flex: 0 0 auto;
+    }
+    .brand-text strong {
+      display: block;
+      font-size: 1rem;
+      line-height: 1.2;
+    }
+    .brand-text span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.2;
+    }
+    .theme-btn {
+      min-width: 44px;
+      min-height: 44px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+    }
+    .hero {
+      padding: var(--space-10) 0 var(--space-6);
+    }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: var(--space-6);
+      align-items: stretch;
+    }
+    .card {
+      background: color-mix(in srgb, var(--surface) 92%, transparent 8%);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .hero-card,
+    .search-card,
+    .setup-card,
+    .help-card,
+    .result-card,
+    .empty-card,
+    .steps-card {
+      padding: clamp(20px, 3vw, 34px);
+    }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--primary) 10%, var(--surface) 90%);
+      color: var(--primary-2);
+      font-weight: 700;
+      font-size: 0.9rem;
+      margin-bottom: 18px;
+    }
+    h1 {
+      margin: 0 0 14px;
+      font-size: clamp(2rem, 5vw, 3.7rem);
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+    }
+    .lead {
+      font-size: 1.05rem;
+      color: var(--muted);
+      max-width: 58ch;
+      margin: 0 0 18px;
+    }
+    .mini-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 18px;
+    }
+    .mini-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      color: var(--text);
+    }
+    .mini-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      background: color-mix(in srgb, var(--primary) 12%, var(--surface) 88%);
+      color: var(--primary-2);
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      margin-top: 18px;
+    }
+    .stat {
+      background: color-mix(in srgb, var(--surface-2) 55%, var(--surface) 45%);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+    }
+    .stat strong {
+      display: block;
+      font-size: 1.4rem;
+      line-height: 1.1;
+      margin-bottom: 6px;
+    }
+    .section {
+      padding: 0 0 var(--space-6);
+    }
+    .grid-two {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-6);
+    }
+    label {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .input,
+    .textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      border-radius: 14px;
+      min-height: 52px;
+      padding: 14px 16px;
+      outline: none;
+    }
+    .textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+    .input:focus,
+    .textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 12%, transparent 88%);
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .btn {
+      min-height: 48px;
+      padding: 12px 18px;
+      border-radius: 14px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      font-weight: 700;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      color: #fff;
+      box-shadow: var(--shadow);
+    }
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text);
+      border-color: var(--border);
+    }
+    .btn-whatsapp {
+      background: #16a34a;
+      color: #fff;
+    }
+    .helper {
+      font-size: 0.94rem;
+      color: var(--muted);
+      margin-top: 10px;
+    }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+      margin-bottom: 16px;
+    }
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+    .status-recibido,
+    .status-diagnostico,
+    .status-revision,
+    .status-reparacion { background: color-mix(in srgb, var(--warning) 12%, var(--surface) 88%); color: var(--warning); }
+    .status-esperando,
+    .status-repuesto { background: color-mix(in srgb, #d97706 12%, var(--surface) 88%); color: #d97706; }
+    .status-listo,
+    .status-entregado,
+    .status-finalizado { background: color-mix(in srgb, var(--success) 12%, var(--surface) 88%); color: var(--success); }
+    .status-cancelado { background: color-mix(in srgb, var(--danger) 12%, var(--surface) 88%); color: var(--danger); }
+    .status-default { background: color-mix(in srgb, var(--primary) 12%, var(--surface) 88%); color: var(--primary-2); }
+    .result-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 12px;
+    }
+    .result-title {
+      margin: 0;
+      font-size: clamp(1.3rem, 3vw, 2rem);
+    }
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      margin-top: 20px;
+    }
+    .meta-item {
+      padding: 16px;
+      border-radius: 16px;
+      background: color-mix(in srgb, var(--surface-2) 55%, var(--surface) 45%);
+      border: 1px solid var(--border);
+    }
+    .meta-item span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 4px;
+    }
+    .notice {
+      margin-top: 18px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: color-mix(in srgb, var(--primary) 8%, var(--surface) 92%);
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .hidden { display: none !important; }
+    .footer {
+      padding: 18px 0 48px;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    .steps-list {
+      display: grid;
+      gap: 14px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .steps-list li {
+      display: grid;
+      grid-template-columns: 38px 1fr;
+      gap: 14px;
+      align-items: start;
+    }
+    .step-number {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      background: color-mix(in srgb, var(--primary) 12%, var(--surface) 88%);
+      color: var(--primary-2);
+    }
+    code.inline {
+      background: color-mix(in srgb, var(--surface-2) 70%, var(--surface) 30%);
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+    }
+    @media (max-width: 860px) {
+      .hero-grid,
+      .grid-two,
+      .meta-grid {
+        grid-template-columns: 1fr;
+      }
+      .stats { grid-template-columns: 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a href="#contenido" class="skip-link">Saltar al contenido</a>
+
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <a class="brand" href="#inicio" aria-label="Ir al inicio">
+        <div class="brand-mark" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="7" y="2" width="10" height="20" rx="2"></rect>
+            <path d="M10 6h4"></path>
+            <path d="M11 18h2"></path>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <strong id="brandName">Seguimiento de reparaciones</strong>
+          <span id="brandTagline">Consulta el estado de tu equipo en tiempo real</span>
+        </div>
+      </a>
+      <button class="theme-btn" type="button" id="themeToggle" aria-label="Cambiar tema">🌙</button>
+    </div>
+  </header>
+
+  <main id="contenido">
+    <section class="hero" id="inicio">
+      <div class="container hero-grid">
+        <article class="card hero-card">
+          <div class="eyebrow">Un solo enlace para todos tus clientes</div>
+          <h1>Tu cliente entra al mismo link y ve su cambio al instante.</h1>
+          <p class="lead">Esta versión está hecha para GitHub Pages + Google Sheets. Tú actualizas la hoja y el cliente consulta su reparación por código o teléfono, sin reenviar enlaces nuevos.</p>
+          <div class="mini-list">
+            <div class="mini-item"><div class="mini-icon">1</div><div><strong>Búsqueda simple.</strong> El cliente escribe su código o teléfono.</div></div>
+            <div class="mini-item"><div class="mini-icon">2</div><div><strong>Actualización rápida.</strong> Tú solo cambias una fila en Google Sheets.</div></div>
+            <div class="mini-item"><div class="mini-icon">3</div><div><strong>Mismo enlace.</strong> El resultado se consulta siempre desde la misma página.</div></div>
+          </div>
+        </article>
+
+        <aside class="card help-card">
+          <div class="eyebrow">Lo que sí necesitas</div>
+          <p class="lead" style="margin-bottom:12px;">Antes de usarlo con clientes, crea tu hoja y publícala como CSV. Más abajo tienes los pasos y una caja para generar tu enlace final.</p>
+          <div class="stats">
+            <div class="stat"><strong>Gratis</strong><span>GitHub Pages y Google Sheets</span></div>
+            <div class="stat"><strong>1 link</strong><span>Para todos tus clientes</span></div>
+            <div class="stat"><strong>Celular</strong><span>Diseño pensado para móvil</span></div>
+            <div class="stat"><strong>Simple</strong><span>Sin panel técnico dentro de la web</span></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container grid-two">
+        <section class="card search-card" aria-labelledby="buscarTitulo">
+          <div class="eyebrow">Consulta del cliente</div>
+          <h2 id="buscarTitulo" style="margin-top:0;">Buscar reparación</h2>
+          <label for="searchInput">Código de orden o teléfono</label>
+          <input id="searchInput" class="input" type="text" inputmode="text" autocomplete="off" placeholder="Ejemplo: R-001 o 88887777" />
+          <div class="actions">
+            <button id="searchBtn" class="btn btn-primary" type="button">Buscar ahora</button>
+            <button id="refreshBtn" class="btn btn-secondary" type="button">Actualizar datos</button>
+          </div>
+          <p class="helper" id="sheetStatus">Todavía no hay una hoja conectada. Usa el asistente de configuración de la derecha.</p>
+        </section>
+
+        <section class="card setup-card" aria-labelledby="setupTitulo">
+          <div class="eyebrow">Asistente fácil</div>
+          <h2 id="setupTitulo" style="margin-top:0;">Generar tu enlace final</h2>
+          <label for="sheetInput">Pega aquí la URL de tu Google Sheet o tu CSV publicado</label>
+          <input id="sheetInput" class="input" type="text" autocomplete="off" placeholder="Pega aquí tu enlace de Google Sheets" />
+          <div class="actions">
+            <button id="buildLinkBtn" class="btn btn-primary" type="button">Crear enlace final</button>
+          </div>
+          <label for="finalLink" style="margin-top:16px;">Tu enlace fijo para clientes</label>
+          <textarea id="finalLink" class="textarea" readonly placeholder="Aquí aparecerá tu enlace listo para copiar"></textarea>
+          <p class="helper">Ese enlace será siempre el mismo. Cuando cambies la hoja, el cliente verá el cambio desde ese mismo link.</p>
+        </section>
+      </div>
+    </section>
+
+    <section class="section hidden" id="resultSection" aria-live="polite">
+      <div class="container">
+        <article class="card result-card">
+          <div class="result-head">
+            <div>
+              <div id="statusBadge" class="status-badge status-default"><span class="status-dot"></span><span id="statusText">Estado</span></div>
+              <h2 class="result-title" id="resultTitle">Resultado</h2>
+            </div>
+            <div class="actions" id="resultActions"></div>
+          </div>
+          <p id="resultSubtitle" class="lead" style="margin-bottom:0;">Información de la reparación.</p>
+          <div class="meta-grid" id="resultGrid"></div>
+          <div class="notice" id="resultNotice">La fecha estimada puede cambiar según pruebas, carga de trabajo o disponibilidad de repuestos.</div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section hidden" id="emptySection">
+      <div class="container">
+        <article class="card empty-card">
+          <div class="eyebrow">Sin resultado</div>
+          <h2 style="margin-top:0;">No encontré esa reparación.</h2>
+          <p class="lead" style="margin-bottom:0;">Revisa el código, prueba con el teléfono del cliente o confirma que la orden esté escrita en la hoja exactamente como la registraste.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container grid-two">
+        <article class="card steps-card">
+          <div class="eyebrow">Pasos rápidos</div>
+          <h2 style="margin-top:0;">Cómo usarlo sin enredarte</h2>
+          <ol class="steps-list">
+            <li><div class="step-number">1</div><div><strong>Crea tu hoja.</strong> Usa la plantilla CSV incluida en esta entrega y pégala dentro de Google Sheets.</div></li>
+            <li><div class="step-number">2</div><div><strong>Publícala.</strong> En Google Sheets entra a Archivo &gt; Compartir &gt; Publicar en la web, elige la hoja correcta y selecciona formato CSV.</div></li>
+            <li><div class="step-number">3</div><div><strong>Pega el enlace.</strong> Copia ese enlace en la caja “Generar tu enlace final”.</div></li>
+            <li><div class="step-number">4</div><div><strong>Comparte el link final.</strong> Ese será el único enlace que usarán todos tus clientes.</div></li>
+          </ol>
+        </article>
+
+        <article class="card steps-card">
+          <div class="eyebrow">Columnas mínimas</div>
+          <h2 style="margin-top:0;">Qué nombres debe tener tu hoja</h2>
+          <p class="lead">Respeta estos nombres para que la página lea todo bien: <code class="inline">codigo</code>, <code class="inline">cliente</code>, <code class="inline">telefono</code>, <code class="inline">equipo</code>, <code class="inline">marca</code>, <code class="inline">modelo</code>, <code class="inline">reparacion</code>, <code class="inline">estado</code>, <code class="inline">fecha_estimada</code>, <code class="inline">notas</code>, <code class="inline">tecnico</code>, <code class="inline">whatsapp</code>.</p>
+          <p class="helper" style="margin-top:14px;">La búsqueda funciona por <strong>código</strong> o <strong>teléfono</strong>. Si el teléfono lleva espacios, guiones o paréntesis, la página los limpia sola.</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      Esta página está lista para subir a GitHub Pages. Solo necesitas conectar tu Google Sheet pública y compartir el enlace final que te genera el asistente.
+    </div>
+  </footer>
+
+  <script>
+    const BUSINESS_NAME = 'Seguimiento de reparaciones';
+    const BUSINESS_TAGLINE = 'Consulta el estado de tu equipo en tiempo real';
+    const DEFAULT_WHATSAPP = '';
+
+    const dom = {
+      brandName: document.getElementById('brandName'),
+      brandTagline: document.getElementById('brandTagline'),
+      themeToggle: document.getElementById('themeToggle'),
+      searchInput: document.getElementById('searchInput'),
+      searchBtn: document.getElementById('searchBtn'),
+      refreshBtn: document.getElementById('refreshBtn'),
+      sheetStatus: document.getElementById('sheetStatus'),
+      sheetInput: document.getElementById('sheetInput'),
+      buildLinkBtn: document.getElementById('buildLinkBtn'),
+      finalLink: document.getElementById('finalLink'),
+      resultSection: document.getElementById('resultSection'),
+      emptySection: document.getElementById('emptySection'),
+      statusBadge: document.getElementById('statusBadge'),
+      statusText: document.getElementById('statusText'),
+      resultTitle: document.getElementById('resultTitle'),
+      resultSubtitle: document.getElementById('resultSubtitle'),
+      resultGrid: document.getElementById('resultGrid'),
+      resultActions: document.getElementById('resultActions'),
+      resultNotice: document.getElementById('resultNotice')
+    };
+
+    let records = [];
+    let activeSheetUrl = '';
+
+    initTheme();
+    initBrand();
+    initEvents();
+    bootstrap();
+
+    function initBrand() {
+      dom.brandName.textContent = BUSINESS_NAME;
+      dom.brandTagline.textContent = BUSINESS_TAGLINE;
+      document.title = BUSINESS_NAME;
+    }
+
+    function initTheme() {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setTheme(prefersDark ? 'dark' : 'light');
+      dom.themeToggle.addEventListener('click', () => {
+        const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        setTheme(next);
+      });
+    }
+
+    function setTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      dom.themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+      dom.themeToggle.setAttribute('aria-label', theme === 'dark' ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro');
+    }
+
+    function initEvents() {
+      dom.searchBtn.addEventListener('click', runSearch);
+      dom.refreshBtn.addEventListener('click', loadSheetData);
+      dom.searchInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') runSearch();
+      });
+      dom.buildLinkBtn.addEventListener('click', buildPermanentLink);
+    }
+
+    async function bootstrap() {
+      const url = new URL(window.location.href);
+      const directSheet = url.searchParams.get('sheet');
+      const id = url.searchParams.get('id');
+      const gid = url.searchParams.get('gid') || '0';
+      const name = url.searchParams.get('negocio');
+
+      if (name) {
+        dom.brandName.textContent = decodeURIComponent(name);
+      }
+
+      if (directSheet) {
+        activeSheetUrl = directSheet;
+      } else if (id) {
+        activeSheetUrl = `https://docs.google.com/spreadsheets/d/${encodeURIComponent(id)}/gviz/tq?tqx=out:csv&gid=${encodeURIComponent(gid)}`;
+      }
+
+      if (activeSheetUrl) {
+        dom.sheetInput.value = activeSheetUrl;
+        await loadSheetData();
+      }
+    }
+
+    async function loadSheetData() {
+      if (!activeSheetUrl) {
+        const fromInput = cleanSheetUrl(dom.sheetInput.value);
+        if (fromInput) activeSheetUrl = fromInput;
+      }
+
+      if (!activeSheetUrl) {
+        dom.sheetStatus.textContent = 'Todavía no hay una hoja conectada. Usa el asistente de configuración de la derecha.';
+        return;
+      }
+
+      dom.sheetStatus.textContent = 'Cargando datos desde Google Sheets...';
+
+      try {
+        const response = await fetch(activeSheetUrl, { cache: 'no-store' });
+        if (!response.ok) throw new Error('No se pudo leer la hoja.');
+        const csv = await response.text();
+        const parsed = csvToObjects(csv);
+
+        if (!parsed.length) throw new Error('La hoja está vacía o las columnas no coinciden.');
+
+        records = parsed.map(normalizeRecord).filter(item => item.codigo || item.telefono);
+        dom.sheetStatus.textContent = `Hoja conectada. Registros cargados: ${records.length}.`;
+      } catch (error) {
+        records = [];
+        dom.sheetStatus.textContent = 'No pude leer la hoja. Verifica que esté publicada como CSV y que el enlace sea público.';
+      }
+    }
+
+    function runSearch() {
+      hideResults();
+      const query = dom.searchInput.value.trim();
+      if (!query) {
+        dom.sheetStatus.textContent = 'Escribe un código o teléfono antes de buscar.';
+        return;
+      }
+      if (!records.length) {
+        dom.sheetStatus.textContent = 'Primero conecta la hoja de Google Sheets y luego busca.';
+        return;
+      }
+
+      const normalizedQuery = normalizeText(query);
+      const normalizedPhone = normalizePhone(query);
+
+      const match = records.find(item => {
+        const byCode = item.codigo_normalizado && item.codigo_normalizado === normalizedQuery;
+        const byPhone = item.telefono_normalizado && item.telefono_normalizado.endsWith(normalizedPhone);
+        return byCode || byPhone;
+      }) || records.find(item => {
+        const byCodePartial = item.codigo_normalizado && item.codigo_normalizado.includes(normalizedQuery);
+        const byPhonePartial = normalizedPhone && item.telefono_normalizado && item.telefono_normalizado.includes(normalizedPhone);
+        return byCodePartial || byPhonePartial;
+      });
+
+      if (!match) {
+        dom.emptySection.classList.remove('hidden');
+        return;
+      }
+
+      renderResult(match);
+    }
+
+    function renderResult(item) {
+      dom.resultSection.classList.remove('hidden');
+      dom.emptySection.classList.add('hidden');
+
+      const statusClass = getStatusClass(item.estado);
+      dom.statusBadge.className = `status-badge ${statusClass}`;
+      dom.statusText.textContent = item.estado || 'Estado no definido';
+      dom.resultTitle.textContent = item.cliente || 'Cliente';
+      dom.resultSubtitle.textContent = `${item.equipo || 'Equipo'}${item.modelo ? ' · ' + item.modelo : ''}${item.reparacion ? ' · ' + item.reparacion : ''}`;
+      dom.resultNotice.textContent = item.notas || 'La fecha estimada puede cambiar según pruebas, carga de trabajo o disponibilidad de repuestos.';
+
+      const fields = [
+        ['Código', item.codigo],
+        ['Teléfono', item.telefono],
+        ['Marca', item.marca],
+        ['Modelo', item.modelo],
+        ['Equipo', item.equipo],
+        ['Reparación', item.reparacion],
+        ['Fecha estimada', item.fecha_estimada],
+        ['Técnico', item.tecnico]
+      ].filter(([, value]) => value);
+
+      dom.resultGrid.innerHTML = fields.map(([label, value]) => `
+        <div class="meta-item">
+          <span>${escapeHtml(label)}</span>
+          <strong>${escapeHtml(value)}</strong>
+        </div>
+      `).join('');
+
+      const wa = normalizePhone(item.whatsapp || DEFAULT_WHATSAPP);
+      const actions = [];
+      if (wa) {
+        const message = encodeURIComponent(`Hola, quiero consultar mi reparación ${item.codigo ? '(' + item.codigo + ')' : ''}.`);
+        actions.push(`<a class="btn btn-whatsapp" href="https://wa.me/${wa}?text=${message}" target="_blank" rel="noopener noreferrer">WhatsApp</a>`);
+      }
+      actions.push('<button class="btn btn-secondary" type="button" onclick="window.print()">Imprimir</button>');
+      dom.resultActions.innerHTML = actions.join('');
+    }
+
+    function hideResults() {
+      dom.resultSection.classList.add('hidden');
+      dom.emptySection.classList.add('hidden');
+    }
+
+    function buildPermanentLink() {
+      const cleaned = cleanSheetUrl(dom.sheetInput.value);
+      if (!cleaned) {
+        dom.finalLink.value = 'No pude reconocer ese enlace. Pega la URL de tu Google Sheet o tu CSV publicado.';
+        return;
+      }
+      const base = `${window.location.origin}${window.location.pathname}`;
+      const negocio = encodeURIComponent(dom.brandName.textContent.trim());
+      dom.finalLink.value = `${base}?sheet=${encodeURIComponent(cleaned)}&negocio=${negocio}`;
+      activeSheetUrl = cleaned;
+      loadSheetData();
+    }
+
+    function cleanSheetUrl(value) {
+      const raw = (value || '').trim();
+      if (!raw) return '';
+      if (/output=csv/i.test(raw) || /tqx=out:csv/i.test(raw)) return raw;
+
+      try {
+        const url = new URL(raw);
+        if (!/docs\.google\.com/.test(url.hostname)) return raw;
+        const match = raw.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+        const gid = url.searchParams.get('gid') || '0';
+        if (match && match[1]) {
+          return `https://docs.google.com/spreadsheets/d/${match[1]}/gviz/tq?tqx=out:csv&gid=${gid}`;
+        }
+      } catch (error) {
+        return raw;
+      }
+      return raw;
+    }
+
+    function normalizeRecord(record) {
+      return {
+        codigo: firstValue(record, ['codigo', 'código', 'orden', 'ticket']),
+        cliente: firstValue(record, ['cliente', 'nombre']),
+        telefono: firstValue(record, ['telefono', 'teléfono', 'celular', 'whatsapp_cliente']),
+        equipo: firstValue(record, ['equipo', 'dispositivo']),
+        marca: firstValue(record, ['marca']),
+        modelo: firstValue(record, ['modelo']),
+        reparacion: firstValue(record, ['reparacion', 'reparación', 'servicio', 'trabajo']),
+        estado: firstValue(record, ['estado', 'estatus']),
+        fecha_estimada: firstValue(record, ['fecha_estimada', 'fecha estimada', 'entrega', 'fecha_entrega']),
+        notas: firstValue(record, ['notas', 'observaciones', 'detalle', 'comentarios']),
+        tecnico: firstValue(record, ['tecnico', 'técnico', 'responsable']),
+        whatsapp: firstValue(record, ['whatsapp', 'telefono_taller', 'tel_taller']),
+        codigo_normalizado: normalizeText(firstValue(record, ['codigo', 'código', 'orden', 'ticket'])),
+        telefono_normalizado: normalizePhone(firstValue(record, ['telefono', 'teléfono', 'celular', 'whatsapp_cliente']))
+      };
+    }
+
+    function firstValue(record, keys) {
+      for (const key of keys) {
+        if (record[key] != null && String(record[key]).trim() !== '') return String(record[key]).trim();
+      }
+      return '';
+    }
+
+    function normalizeText(value) {
+      return String(value || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .trim();
+    }
+
+    function normalizePhone(value) {
+      return String(value || '').replace(/\D+/g, '');
+    }
+
+    function getStatusClass(status) {
+      const text = normalizeText(status);
+      if (text.includes('esperando') || text.includes('repuesto')) return 'status-esperando';
+      if (text.includes('listo') || text.includes('entregado') || text.includes('finalizado')) return 'status-listo';
+      if (text.includes('cancelado')) return 'status-cancelado';
+      if (text.includes('diagnostico') || text.includes('revision') || text.includes('reparacion') || text.includes('recibido')) return 'status-diagnostico';
+      return 'status-default';
+    }
+
+    function csvToObjects(csvText) {
+      const rows = parseCSV(csvText).filter(row => row.some(cell => String(cell).trim() !== ''));
+      if (!rows.length) return [];
+      const headers = rows[0].map(header => normalizeText(header).replace(/\s+/g, '_'));
+      return rows.slice(1).map(row => {
+        const item = {};
+        headers.forEach((header, index) => {
+          item[header] = (row[index] || '').trim();
+        });
+        return item;
+      });
+    }
+
+    function parseCSV(text) {
+      const rows = [];
+      let row = [];
+      let value = '';
+      let inQuotes = false;
+
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        const next = text[i + 1];
+
+        if (char === '"') {
+          if (inQuotes && next === '"') {
+            value += '"';
+            i++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (char === ',' && !inQuotes) {
+          row.push(value);
+          value = '';
+        } else if ((char === '\n' || char === '\r') && !inQuotes) {
+          if (char === '\r' && next === '\n') i++;
+          row.push(value);
+          rows.push(row);
+          row = [];
+          value = '';
+        } else {
+          value += char;
+        }
+      }
+
+      if (value.length > 0 || row.length > 0) {
+        row.push(value);
+        rows.push(row);
+      }
+
+      return rows;
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+  </script>
+</body>
+</html>
