@@ -1,246 +1,447 @@
 <!DOCTYPE html>
-<html lang="es" data-theme="dark">
+<html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
   <title>Seguimiento de reparaciones</title>
   <meta name="description" content="Consulta el estado de una reparación por código o teléfono." />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --bg: #0a0a0a;
-      --surface: #161616;
-      --surface-2: #212121;
-      --border: rgba(255, 255, 255, 0.08);
-      --text: #f0f0f0;
-      --muted: #a8a8a8;
-      --primary: #00e5ff;
-      --primary-2: #00b8d4;
-      --success: #76ff03;
-      --warning: #ffea00;
-      --danger: #ff1744;
-      --shadow: 0 16px 40px rgba(0, 0, 0, 0.85);
-      --radius: 22px;
-      --radius-sm: 14px;
-    }
-    * { box-sizing: border-box; }
-    body {
+    * {
+      box-sizing: border-box;
       margin: 0;
-      min-height: 100vh;
-      font-family: 'Inter', system-ui, sans-serif;
-      color: var(--text);
-      background:
-        radial-gradient(circle at top left, color-mix(in srgb, var(--primary) 10%, transparent 90%), transparent 32%),
-        linear-gradient(180deg, var(--bg) 0%, #0d0d0d 100%);
-      display: grid;
-      place-items: center;
-      padding: 20px;
+      padding: 0;
     }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #14181c; /* gris oscuro base */
+      padding: 16px;
+      margin: 0;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Fondo con partículas (canvas) */
+    #particles-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
     .shell {
       width: min(760px, 100%);
+      position: relative;
+      z-index: 1;
+      margin: 0 auto;
     }
+
     .card {
-      background: color-mix(in srgb, var(--surface) 94%, transparent 6%);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
+      background: rgba(24, 30, 36, 0.88);
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(0, 229, 255, 0.20);
+      border-radius: 28px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 30px rgba(0, 229, 255, 0.08);
       overflow: hidden;
+      transition: box-shadow 0.3s ease, border-color 0.3s ease;
     }
+
+    .card:hover {
+      border-color: rgba(0, 229, 255, 0.35);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 229, 255, 0.15);
+    }
+
     .top {
-      padding: 28px 28px 10px;
+      padding: 26px 26px 8px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
+      gap: 12px;
+      flex-wrap: wrap;
     }
+
     .brand {
       display: flex;
       align-items: center;
       gap: 14px;
     }
+
     .brand-mark {
       width: 52px;
       height: 52px;
       border-radius: 16px;
       display: grid;
       place-items: center;
-      background: linear-gradient(135deg, var(--primary), var(--primary-2));
-      color: #000;
-      flex: 0 0 auto;
+      background: linear-gradient(135deg, #00e5ff, #00b8d4);
+      color: #0a0e12;
+      flex-shrink: 0;
+      box-shadow: 0 0 20px rgba(0, 229, 255, 0.25);
+      transition: transform 0.2s ease;
     }
+    .brand-mark:hover {
+      transform: scale(1.05) rotate(-2deg);
+    }
+
     .brand h1 {
       margin: 0;
-      font-size: clamp(1.4rem, 4vw, 2rem);
-      line-height: 1.05;
-      letter-spacing: -0.03em;
-      color: var(--text);
+      font-size: clamp(1.3rem, 4vw, 2rem);
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      color: #e8f0f8;
     }
+
     .brand p {
-      margin: 6px 0 0;
-      color: var(--muted);
-      font-size: 0.98rem;
+      margin: 4px 0 0;
+      color: #8a9aa8;
+      font-size: 0.95rem;
     }
+
+    /* ----- BÚSQUEDA ----- */
     .search-box {
-      padding: 18px 28px 28px;
+      padding: 18px 26px 26px;
     }
+
     .search-panel {
-      background: color-mix(in srgb, var(--surface-2) 60%, var(--surface) 40%);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 20px;
+      background: rgba(32, 40, 48, 0.6);
+      border: 1px solid rgba(0, 229, 255, 0.12);
+      border-radius: 20px;
+      padding: 22px 20px;
+      transition: border-color 0.3s ease, background 0.3s ease;
     }
+    .search-panel:focus-within {
+      border-color: rgba(0, 229, 255, 0.45);
+      background: rgba(32, 40, 48, 0.8);
+    }
+
     .badge {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 8px 12px;
+      padding: 8px 16px;
       border-radius: 999px;
-      background: color-mix(in srgb, var(--primary) 18%, var(--surface) 82%);
-      color: var(--primary);
-      font-weight: 800;
-      font-size: 0.9rem;
-      margin-bottom: 14px;
+      background: rgba(0, 229, 255, 0.12);
+      color: #00e5ff;
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: 0.3px;
+      margin-bottom: 16px;
+      border: 1px solid rgba(0, 229, 255, 0.15);
     }
+
     label {
       display: block;
-      font-weight: 700;
+      font-weight: 600;
       margin-bottom: 10px;
-      color: var(--text);
+      color: #d0dce8;
+      font-size: 0.95rem;
     }
+
     .row {
       display: grid;
       grid-template-columns: 1fr auto;
       gap: 12px;
     }
+
     .input {
       width: 100%;
       min-height: 54px;
-      border: 1px solid var(--border);
-      border-radius: 15px;
-      background: var(--surface);
-      color: var(--text);
-      padding: 14px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      background: rgba(16, 22, 28, 0.7);
+      color: #e8f0f8;
+      padding: 14px 18px;
       outline: none;
       font: inherit;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
     }
     .input:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 20%, transparent 80%);
+      border-color: #00e5ff;
+      box-shadow: 0 0 0 4px rgba(0, 229, 255, 0.15);
+      background: rgba(16, 22, 28, 0.9);
     }
+    .input::placeholder {
+      color: #6a7a88;
+    }
+
     .btn {
       min-height: 54px;
-      padding: 0 20px;
-      border-radius: 15px;
+      padding: 0 24px;
+      border-radius: 16px;
       border: 0;
       cursor: pointer;
-      font-weight: 800;
+      font-weight: 700;
       font: inherit;
+      transition: all 0.25s ease;
+      letter-spacing: 0.3px;
     }
+
     .btn-primary {
-      background: linear-gradient(135deg, var(--primary), var(--primary-2));
-      color: #000;
-      box-shadow: var(--shadow);
+      background: linear-gradient(135deg, #00e5ff, #0091b0);
+      color: #0a0e12;
+      box-shadow: 0 0 20px rgba(0, 229, 255, 0.2);
     }
+    .btn-primary:hover {
+      transform: scale(1.02);
+      box-shadow: 0 0 30px rgba(0, 229, 255, 0.4);
+    }
+    .btn-primary:active {
+      transform: scale(0.97);
+    }
+
     .helper {
-      margin: 12px 0 0;
-      color: var(--muted);
-      font-size: 0.95rem;
+      margin: 14px 0 0;
+      color: #8a9aa8;
+      font-size: 0.9rem;
+      transition: color 0.3s ease;
     }
+
+    /* ----- RESULTADOS ----- */
     .section {
-      padding: 0 28px 28px;
+      padding: 0 26px 26px;
     }
-    .hidden { display: none !important; }
-    .result-card, .empty-card {
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 22px;
-      background: color-mix(in srgb, var(--surface) 92%, transparent 8%);
+
+    .hidden {
+      display: none !important;
     }
+
+    .result-card,
+    .empty-card {
+      border: 1px solid rgba(0, 229, 255, 0.10);
+      border-radius: 20px;
+      padding: 24px 22px;
+      background: rgba(18, 24, 30, 0.6);
+      backdrop-filter: blur(2px);
+      transition: all 0.4s ease;
+      animation: fadeSlideUp 0.45s ease forwards;
+    }
+
+    @keyframes fadeSlideUp {
+      0% { opacity: 0; transform: translateY(12px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
     .status {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 10px 14px;
+      gap: 10px;
+      padding: 10px 18px;
       border-radius: 999px;
-      font-weight: 800;
-      margin-bottom: 14px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      background: rgba(0, 229, 255, 0.10);
+      color: #00e5ff;
+      border: 1px solid rgba(0, 229, 255, 0.15);
+      transition: all 0.3s ease;
     }
-    .dot {
+    .status .dot {
       width: 10px;
       height: 10px;
       border-radius: 50%;
       background: currentColor;
+      animation: pulse-dot 1.8s infinite;
     }
-    .status-default { background: color-mix(in srgb, var(--primary) 18%, var(--surface) 82%); color: var(--primary); }
-    .status-warning { background: color-mix(in srgb, var(--warning) 18%, var(--surface) 82%); color: var(--warning); }
-    .status-success { background: color-mix(in srgb, var(--success) 18%, var(--surface) 82%); color: var(--success); }
-    .status-danger { background: color-mix(in srgb, var(--danger) 18%, var(--surface) 82%); color: var(--danger); }
+    @keyframes pulse-dot {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.75); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    .status-warning {
+      background: rgba(255, 234, 0, 0.12);
+      color: #ffea00;
+      border-color: rgba(255, 234, 0, 0.20);
+    }
+    .status-success {
+      background: rgba(0, 230, 118, 0.12);
+      color: #00e676;
+      border-color: rgba(0, 230, 118, 0.20);
+    }
+    .status-danger {
+      background: rgba(255, 23, 68, 0.12);
+      color: #ff1744;
+      border-color: rgba(255, 23, 68, 0.20);
+    }
+
     .title {
-      margin: 0 0 8px;
-      font-size: clamp(1.25rem, 3vw, 1.9rem);
-      line-height: 1.1;
-      color: var(--text);
+      margin: 0 0 6px;
+      font-size: clamp(1.2rem, 3vw, 1.8rem);
+      line-height: 1.2;
+      color: #e8f0f8;
+      font-weight: 700;
     }
     .subtitle {
       margin: 0 0 18px;
-      color: var(--muted);
+      color: #8a9aa8;
+      font-size: 0.95rem;
     }
+
     .grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 12px;
     }
+
     .item {
-      padding: 15px;
+      padding: 14px 16px;
       border-radius: 16px;
-      border: 1px solid var(--border);
-      background: color-mix(in srgb, var(--surface-2) 58%, var(--surface) 42%);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      background: rgba(32, 40, 48, 0.4);
+      transition: all 0.25s ease;
+    }
+    .item:hover {
+      background: rgba(32, 40, 48, 0.7);
+      border-color: rgba(0, 229, 255, 0.10);
     }
     .item span {
       display: block;
-      color: var(--muted);
-      font-size: 0.9rem;
+      color: #8a9aa8;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
       margin-bottom: 4px;
     }
     .item strong {
-      color: var(--text);
+      color: #e8f0f8;
+      font-weight: 600;
+      word-break: break-word;
     }
+
     .notice {
-      margin-top: 16px;
-      border: 1px solid var(--border);
-      border-radius: 15px;
-      background: color-mix(in srgb, var(--primary) 8%, var(--surface) 92%);
-      color: var(--muted);
-      padding: 14px 16px;
+      margin-top: 18px;
+      border: 1px solid rgba(0, 229, 255, 0.08);
+      border-radius: 16px;
+      background: rgba(0, 229, 255, 0.04);
+      color: #8a9aa8;
+      padding: 14px 18px;
+      font-size: 0.9rem;
+      transition: background 0.3s ease;
     }
+
     .actions {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 16px;
+      gap: 12px;
+      margin-top: 18px;
     }
+
     .btn-wa {
       display: inline-flex;
       align-items: center;
       justify-content: center;
       min-height: 48px;
-      padding: 0 18px;
+      padding: 0 22px;
       border-radius: 14px;
       text-decoration: none;
-      font-weight: 800;
+      font-weight: 700;
       background: #00e676;
-      color: #000;
+      color: #0a0e12;
+      transition: all 0.25s ease;
+      box-shadow: 0 0 15px rgba(0, 230, 118, 0.15);
+      border: 1px solid rgba(0, 230, 118, 0.2);
     }
+    .btn-wa:hover {
+      transform: scale(1.02);
+      box-shadow: 0 0 25px rgba(0, 230, 118, 0.3);
+    }
+    .btn-wa:active {
+      transform: scale(0.96);
+    }
+
+    .empty-card .badge {
+      margin-bottom: 10px;
+    }
+
+    /* Responsive */
     @media (max-width: 640px) {
-      .top, .search-box, .section { padding-left: 18px; padding-right: 18px; }
-      .row, .grid { grid-template-columns: 1fr; }
-      .btn { width: 100%; }
+      body {
+        padding: 12px;
+        align-items: center;
+      }
+      .top {
+        padding: 18px 18px 6px;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .brand {
+        width: 100%;
+      }
+      .search-box {
+        padding: 12px 18px 20px;
+      }
+      .search-panel {
+        padding: 16px;
+      }
+      .row {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+      .btn {
+        width: 100%;
+        justify-content: center;
+      }
+      .section {
+        padding: 0 18px 20px;
+      }
+      .result-card,
+      .empty-card {
+        padding: 18px 16px;
+      }
+      .grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+      .item {
+        padding: 12px 14px;
+      }
+      .brand h1 {
+        font-size: 1.3rem;
+      }
+      .brand-mark {
+        width: 44px;
+        height: 44px;
+      }
+      .brand-mark svg {
+        width: 22px;
+        height: 22px;
+      }
+    }
+
+    @media (max-width: 400px) {
+      .top {
+        padding: 12px 12px 4px;
+      }
+      .search-box {
+        padding: 8px 12px 16px;
+      }
+      .section {
+        padding: 0 12px 16px;
+      }
+      .result-card,
+      .empty-card {
+        padding: 14px 12px;
+      }
+      .badge {
+        font-size: 0.75rem;
+        padding: 6px 12px;
+      }
     }
   </style>
 </head>
 <body>
+
+  <!-- Canvas de partículas -->
+  <canvas id="particles-canvas"></canvas>
+
   <main class="shell">
     <section class="card">
       <div class="top">
@@ -261,19 +462,19 @@
 
       <div class="search-box">
         <div class="search-panel">
-          <div class="badge">Consultar reparación</div>
-          <label for="searchInput">Ingresa tu código o tu teléfono</label>
+          <div class="badge">✦ Consultar reparación</div>
+          <label for="searchInput">Ingresa tu código o teléfono</label>
           <div class="row">
             <input id="searchInput" class="input" type="text" placeholder="Ejemplo: R-001 o 88887777" autocomplete="off" />
             <button id="searchBtn" class="btn btn-primary" type="button">Consultar</button>
           </div>
-          <p class="helper" id="sheetStatus">Listo para consultar. Si no aparecen datos, revisa que la hoja esté bien conectada.</p>
+          <p class="helper" id="sheetStatus">Listo para consultar. Si no aparecen datos, revisa la conexión.</p>
         </div>
       </div>
 
       <div class="section hidden" id="resultSection">
         <div class="result-card">
-          <div id="statusBadge" class="status status-default"><span class="dot"></span><span id="statusText">Estado</span></div>
+          <div id="statusBadge" class="status"><span class="dot"></span><span id="statusText">Estado</span></div>
           <h2 class="title" id="resultTitle">Cliente</h2>
           <p class="subtitle" id="resultSubtitle">Detalle de reparación</p>
           <div class="grid" id="resultGrid"></div>
@@ -284,7 +485,7 @@
 
       <div class="section hidden" id="emptySection">
         <div class="empty-card">
-          <div class="badge">Sin resultado</div>
+          <div class="badge">✦ Sin resultado</div>
           <h2 class="title">No encontré esa reparación.</h2>
           <p class="subtitle" style="margin-bottom:0;">Revisa el código o el teléfono y vuelve a intentarlo.</p>
         </div>
@@ -294,11 +495,13 @@
   </main>
 
   <script>
+    // ---------- CONFIGURACIÓN ----------
     const BUSINESS_NAME = 'CELULARES JOSEDAN';
     const BUSINESS_TEXT = 'Consulta el estado de tu reparación con tu código o teléfono.';
     const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ5dzViUATaZXgTdRXiAIG6ARCw9LrnWCWysGSurbGKvGr8EQTwhY7We8xdqIxISR47FRfZ_-Jk4Oum/pub?gid=462698169&single=true&output=csv';
     const DEFAULT_WHATSAPP = '';
 
+    // ---------- DOM ----------
     const dom = {
       brandName: document.getElementById('brandName'),
       brandText: document.getElementById('brandText'),
@@ -322,43 +525,116 @@
     dom.brandText.textContent = BUSINESS_TEXT;
     document.title = BUSINESS_NAME;
 
-    loadSheetData();
+    // ---------- PARTÍCULAS ----------
+    (function initParticles() {
+      const canvas = document.getElementById('particles-canvas');
+      const ctx = canvas.getContext('2d');
+      let w, h;
+      let particles = [];
+      const NUM = 70;
 
-    dom.searchBtn.addEventListener('click', runSearch);
-    dom.searchInput.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter') runSearch();
-    });
+      function resize() {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+      }
+      window.addEventListener('resize', resize);
+      resize();
 
+      class Particle {
+        constructor() {
+          this.reset();
+        }
+        reset() {
+          this.x = Math.random() * w;
+          this.y = Math.random() * h;
+          this.size = Math.random() * 2.5 + 1.2;
+          this.speedX = (Math.random() - 0.5) * 0.4;
+          this.speedY = (Math.random() - 0.5) * 0.4;
+          this.opacity = Math.random() * 0.6 + 0.2;
+          this.color = `rgba(0, 229, 255, ${this.opacity})`;
+        }
+        update() {
+          this.x += this.speedX;
+          this.y += this.speedY;
+          if (this.x < 0 || this.x > w) this.speedX *= -1;
+          if (this.y < 0 || this.y > h) this.speedY *= -1;
+        }
+        draw() {
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+          ctx.fillStyle = this.color;
+          ctx.fill();
+          // brillo suave
+          ctx.shadowColor = 'rgba(0, 229, 255, 0.3)';
+          ctx.shadowBlur = 8;
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        }
+      }
+
+      for (let i = 0; i < NUM; i++) {
+        particles.push(new Particle());
+      }
+
+      function animate() {
+        ctx.clearRect(0, 0, w, h);
+        particles.forEach(p => {
+          p.update();
+          p.draw();
+        });
+        // líneas entre partículas cercanas
+        for (let i = 0; i < particles.length; i++) {
+          for (let j = i + 1; j < particles.length; j++) {
+            const dx = particles[i].x - particles[j].x;
+            const dy = particles[i].y - particles[j].y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 120) {
+              ctx.beginPath();
+              ctx.moveTo(particles[i].x, particles[i].y);
+              ctx.lineTo(particles[j].x, particles[j].y);
+              ctx.strokeStyle = `rgba(0, 229, 255, ${0.08 * (1 - dist / 120)})`;
+              ctx.lineWidth = 0.6;
+              ctx.stroke();
+            }
+          }
+        }
+        requestAnimationFrame(animate);
+      }
+      animate();
+    })();
+
+    // ---------- CARGA DE DATOS ----------
     async function loadSheetData() {
       if (!SHEET_URL || SHEET_URL.includes('PEGA_AQUI')) {
-        dom.sheetStatus.textContent = 'Falta conectar la hoja. Abre index.html y pega tu enlace CSV en SHEET_URL.';
+        dom.sheetStatus.textContent = '⚠️ Falta conectar la hoja. Abre index.html y pega tu enlace CSV en SHEET_URL.';
         return;
       }
 
-      dom.sheetStatus.textContent = 'Cargando registros...';
+      dom.sheetStatus.textContent = '🔄 Cargando registros...';
       try {
         const response = await fetch(SHEET_URL, { cache: 'no-store' });
         if (!response.ok) throw new Error('No se pudo leer la hoja');
         const csv = await response.text();
         const parsed = csvToObjects(csv);
         records = parsed.map(normalizeRecord).filter(item => item.codigo || item.telefono);
-        dom.sheetStatus.textContent = 'Escribe tu código o teléfono para consultar.';
+        dom.sheetStatus.textContent = '✅ Escribe tu código o teléfono para consultar.';
         loadQueryFromUrl();
       } catch (error) {
         records = [];
-        dom.sheetStatus.textContent = 'No pude leer la hoja. Revisa el enlace CSV publicado.';
+        dom.sheetStatus.textContent = '❌ No pude leer la hoja. Revisa el enlace CSV publicado.';
       }
     }
 
+    // ---------- BÚSQUEDA ----------
     function runSearch() {
       hideResults();
       const query = dom.searchInput.value.trim();
       if (!query) {
-        dom.sheetStatus.textContent = 'Primero escribe tu código o teléfono.';
+        dom.sheetStatus.textContent = '✏️ Primero escribe tu código o teléfono.';
         return;
       }
       if (!records.length) {
-        dom.sheetStatus.textContent = 'No hay datos cargados todavía.';
+        dom.sheetStatus.textContent = '⏳ No hay datos cargados todavía.';
         return;
       }
 
@@ -385,7 +661,6 @@
       renderResult(match);
     }
 
-
     function loadQueryFromUrl() {
       const params = new URLSearchParams(window.location.search);
       const code = params.get('codigo') || params.get('buscar') || '';
@@ -400,6 +675,7 @@
       window.history.replaceState({}, '', url.toString());
     }
 
+    // ---------- RENDER ----------
     function renderResult(item) {
       dom.resultSection.classList.remove('hidden');
       dom.emptySection.classList.add('hidden');
@@ -430,7 +706,7 @@
 
       const wa = normalizePhone(item.whatsapp || DEFAULT_WHATSAPP);
       dom.resultActions.innerHTML = wa
-        ? `<a class="btn-wa" href="https://wa.me/${wa}?text=${encodeURIComponent('Hola, quiero consultar mi reparación ' + (item.codigo || ''))}" target="_blank" rel="noopener noreferrer">Escribir por WhatsApp</a>`
+        ? `<a class="btn-wa" href="https://wa.me/${wa}?text=${encodeURIComponent('Hola, quiero consultar mi reparación ' + (item.codigo || ''))}" target="_blank" rel="noopener noreferrer">📱 Escribir por WhatsApp</a>`
         : '';
     }
 
@@ -439,6 +715,7 @@
       dom.emptySection.classList.add('hidden');
     }
 
+    // ---------- UTILIDADES ----------
     function normalizeRecord(record) {
       return {
         codigo: firstValue(record, ['codigo', 'código', 'orden', 'ticket']),
@@ -466,11 +743,7 @@
     }
 
     function normalizeText(value) {
-      return String(value || '')
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .toLowerCase()
-        .trim();
+      return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
     }
 
     function normalizePhone(value) {
@@ -541,6 +814,15 @@
         .replaceAll('"', '&quot;')
         .replaceAll("'", '&#39;');
     }
+
+    // ---------- EVENTOS ----------
+    dom.searchBtn.addEventListener('click', runSearch);
+    dom.searchInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') runSearch();
+    });
+
+    // Inicializar
+    loadSheetData();
   </script>
 </body>
 </html>
