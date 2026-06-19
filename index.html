@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    /* (Mismo CSS que antes, sin cambios) */
+    /* (mismo CSS que antes, sin cambios) */
     * {
       box-sizing: border-box;
       margin: 0;
@@ -476,23 +476,21 @@
       animate();
     })();
 
-    // ---------- CARGA DE DATOS (con anti-caché) ----------
+    // ---------- CARGA DE DATOS (sin mensajes para el cliente) ----------
     async function loadSheetData() {
       if (!SHEET_URL || SHEET_URL.includes('PEGA_AQUI')) {
         dom.sheetStatus.textContent = '⚠️ Falta conectar la hoja. Abre index.html y pega tu enlace CSV en SHEET_URL.';
         return false;
       }
 
-      dom.sheetStatus.textContent = '🔄 Cargando registros...';
       try {
-        // Añadir parámetro aleatorio para evitar caché
         const urlWithCacheBuster = SHEET_URL + (SHEET_URL.includes('?') ? '&' : '?') + 't=' + Date.now();
         const response = await fetch(urlWithCacheBuster, { cache: 'no-store' });
         if (!response.ok) throw new Error('No se pudo leer la hoja');
         const csv = await response.text();
         const parsed = csvToObjects(csv);
         records = parsed.map(normalizeRecord).filter(item => item.codigo || item.telefono);
-        dom.sheetStatus.textContent = '✅ Datos actualizados. Escribe tu código o teléfono para consultar.';
+        // No mostramos mensaje de éxito para que el cliente no vea nada adicional
         return true;
       } catch (error) {
         records = [];
@@ -501,7 +499,7 @@
       }
     }
 
-    // ---------- BÚSQUEDA (siempre recarga) ----------
+    // ---------- BÚSQUEDA (recarga en segundo plano sin mostrar mensajes) ----------
     async function runSearch() {
       hideResults();
       const query = dom.searchInput.value.trim();
@@ -510,11 +508,18 @@
         return;
       }
 
-      // 🔄 Recargar datos desde la hoja antes de buscar
+      // Recargar datos en segundo plano sin modificar el mensaje
       await loadSheetData();
 
       if (!records.length) {
-        dom.sheetStatus.textContent = '⏳ No hay datos cargados todavía.';
+        // Solo mostramos este mensaje si no hay datos después de la recarga
+        if (dom.sheetStatus.textContent === 'Listo para consultar. Si no aparecen datos, revisa la conexión.' || 
+            dom.sheetStatus.textContent === '✅ Datos actualizados. Escribe tu código o teléfono para consultar.') {
+          // No sobrescribir mensaje de error si ya hay uno
+        }
+        if (!records.length) {
+          dom.sheetStatus.textContent = '⏳ No hay datos cargados. Revisa la conexión.';
+        }
         return;
       }
 
@@ -685,8 +690,15 @@
       if (event.key === 'Enter') runSearch();
     });
 
-    // Carga inicial de datos al abrir la página
-    loadSheetData();
+    // Carga inicial (sin mostrar mensaje de éxito)
+    loadSheetData().then(() => {
+      // Mantener mensaje original si no hubo error
+      if (dom.sheetStatus.textContent === '⚠️ Falta conectar la hoja...' || dom.sheetStatus.textContent === '❌ No pude leer la hoja...') {
+        // Ya tiene mensaje de error
+      } else {
+        dom.sheetStatus.textContent = 'Listo para consultar. Si no aparecen datos, revisa la conexión.';
+      }
+    });
   </script>
 </body>
 </html>
