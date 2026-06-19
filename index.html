@@ -1,551 +1,649 @@
 <!DOCTYPE html>
 <html lang="es" data-theme="dark">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Seguimiento de reparaciones</title>
-  <meta name="description" content="Consulta el estado de una reparación por código o teléfono." />
-  <!-- Controles de caché para evitar que el navegador guarde versiones antiguas -->
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg: #1a1a1a;               /* gris muy oscuro */
-      --surface: #262626;           /* gris oscuro */
-      --surface-2: #333333;         /* gris medio oscuro */
-      --border: rgba(255, 255, 255, 0.12);
-      --text: #f0f0f0;
-      --muted: #b0b0b0;
-      --primary: #00e5ff;
-      --primary-2: #00b8d4;
-      --success: #76ff03;
-      --warning: #ffea00;
-      --danger: #ff1744;
-      --shadow: 0 16px 40px rgba(0, 0, 0, 0.75);
-      --radius: 22px;
-      --radius-sm: 14px;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: 'Inter', system-ui, sans-serif;
-      color: var(--text);
-      background:
-        radial-gradient(circle at top left, color-mix(in srgb, var(--primary) 8%, transparent 92%), transparent 40%),
-        linear-gradient(180deg, var(--bg) 0%, #141414 100%);
-      display: grid;
-      place-items: center;
-      padding: 20px;
-    }
-    .shell {
-      width: min(760px, 100%);
-    }
-    .card {
-      background: color-mix(in srgb, var(--surface) 94%, transparent 6%);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      overflow: hidden;
-    }
-    .top {
-      padding: 28px 28px 10px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-    }
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-    .brand-mark {
-      width: 52px;
-      height: 52px;
-      border-radius: 16px;
-      display: grid;
-      place-items: center;
-      background: linear-gradient(135deg, var(--primary), var(--primary-2));
-      color: #000;
-      flex: 0 0 auto;
-    }
-    .brand h1 {
-      margin: 0;
-      font-size: clamp(1.4rem, 4vw, 2rem);
-      line-height: 1.05;
-      letter-spacing: -0.03em;
-      color: var(--text);
-    }
-    .brand p {
-      margin: 6px 0 0;
-      color: var(--muted);
-      font-size: 0.98rem;
-    }
-    .search-box {
-      padding: 18px 28px 28px;
-    }
-    .search-panel {
-      background: color-mix(in srgb, var(--surface-2) 60%, var(--surface) 40%);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 20px;
-    }
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 12px;
-      border-radius: 999px;
-      background: color-mix(in srgb, var(--primary) 18%, var(--surface) 82%);
-      color: var(--primary);
-      font-weight: 800;
-      font-size: 0.9rem;
-      margin-bottom: 14px;
-    }
-    label {
-      display: block;
-      font-weight: 700;
-      margin-bottom: 10px;
-      color: var(--text);
-    }
-    .row {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 12px;
-    }
-    .input {
-      width: 100%;
-      min-height: 54px;
-      border: 1px solid var(--border);
-      border-radius: 15px;
-      background: var(--surface);
-      color: var(--text);
-      padding: 14px 16px;
-      outline: none;
-      font: inherit;
-    }
-    .input:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 20%, transparent 80%);
-    }
-    .btn {
-      min-height: 54px;
-      padding: 0 20px;
-      border-radius: 15px;
-      border: 0;
-      cursor: pointer;
-      font-weight: 800;
-      font: inherit;
-    }
-    .btn-primary {
-      background: linear-gradient(135deg, var(--primary), var(--primary-2));
-      color: #000;
-      box-shadow: var(--shadow);
-    }
-    .helper {
-      margin: 12px 0 0;
-      color: var(--muted);
-      font-size: 0.95rem;
-    }
-    .section {
-      padding: 0 28px 28px;
-    }
-    .hidden { display: none !important; }
-    .result-card, .empty-card {
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 22px;
-      background: color-mix(in srgb, var(--surface) 92%, transparent 8%);
-    }
-    .status {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 14px;
-      border-radius: 999px;
-      font-weight: 800;
-      margin-bottom: 14px;
-    }
-    .dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: currentColor;
-    }
-    .status-default { background: color-mix(in srgb, var(--primary) 18%, var(--surface) 82%); color: var(--primary); }
-    .status-warning { background: color-mix(in srgb, var(--warning) 18%, var(--surface) 82%); color: var(--warning); }
-    .status-success { background: color-mix(in srgb, var(--success) 18%, var(--surface) 82%); color: var(--success); }
-    .status-danger { background: color-mix(in srgb, var(--danger) 18%, var(--surface) 82%); color: var(--danger); }
-    .title {
-      margin: 0 0 8px;
-      font-size: clamp(1.25rem, 3vw, 1.9rem);
-      line-height: 1.1;
-      color: var(--text);
-    }
-    .subtitle {
-      margin: 0 0 18px;
-      color: var(--muted);
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-    }
-    .item {
-      padding: 15px;
-      border-radius: 16px;
-      border: 1px solid var(--border);
-      background: color-mix(in srgb, var(--surface-2) 58%, var(--surface) 42%);
-    }
-    .item span {
-      display: block;
-      color: var(--muted);
-      font-size: 0.9rem;
-      margin-bottom: 4px;
-    }
-    .item strong {
-      color: var(--text);
-    }
-    .notice {
-      margin-top: 16px;
-      border: 1px solid var(--border);
-      border-radius: 15px;
-      background: color-mix(in srgb, var(--primary) 8%, var(--surface) 92%);
-      color: var(--muted);
-      padding: 14px 16px;
-    }
-    .actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 16px;
-    }
-    .btn-wa {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 48px;
-      padding: 0 18px;
-      border-radius: 14px;
-      text-decoration: none;
-      font-weight: 800;
-      background: #00e676;
-      color: #000;
-    }
-    @media (max-width: 640px) {
-      .top, .search-box, .section { padding-left: 18px; padding-right: 18px; }
-      .row, .grid { grid-template-columns: 1fr; }
-      .btn { width: 100%; }
-    }
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Seguimiento de reparaciones</title>
+    <meta name="description" content="Consulta el estado de una reparación por código o teléfono." />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* ── colores: gris oscuro, menos negro ── */
+        :root {
+            --bg: #161616;
+            --surface: #242424;
+            --surface-2: #323232;
+            --border: rgba(255, 255, 255, 0.07);
+            --text: #f0f0f0;
+            --muted: #b0b0b0;
+            --primary: #00e5ff;
+            --primary-2: #00b8d4;
+            --success: #76ff03;
+            --warning: #ffea00;
+            --danger: #ff1744;
+            --shadow: 0 16px 40px rgba(0, 0, 0, 0.75);
+            --radius: 22px;
+            --radius-sm: 14px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: 'Inter', system-ui, sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top left, color-mix(in srgb, var(--primary) 8%, transparent 90%), transparent 30%),
+                var(--bg);
+            display: grid;
+            place-items: center;
+            padding: 20px;
+        }
+
+        .shell {
+            width: min(760px, 100%);
+        }
+
+        .card {
+            background: color-mix(in srgb, var(--surface) 94%, transparent 6%);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        /* ── header ── */
+        .top {
+            padding: 28px 28px 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand-mark {
+            width: 52px;
+            height: 52px;
+            border-radius: 16px;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(135deg, var(--primary), var(--primary-2));
+            color: #000;
+            flex: 0 0 auto;
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: clamp(1.4rem, 4vw, 2rem);
+            line-height: 1.05;
+            letter-spacing: -0.03em;
+            color: var(--text);
+        }
+
+        .brand p {
+            margin: 6px 0 0;
+            color: var(--muted);
+            font-size: 0.98rem;
+        }
+
+        /* ── buscador ── */
+        .search-box {
+            padding: 18px 28px 28px;
+        }
+
+        .search-panel {
+            background: color-mix(in srgb, var(--surface-2) 60%, var(--surface) 40%);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 20px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: color-mix(in srgb, var(--primary) 18%, var(--surface) 82%);
+            color: var(--primary);
+            font-weight: 800;
+            font-size: 0.9rem;
+            margin-bottom: 14px;
+        }
+
+        label {
+            display: block;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text);
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 12px;
+        }
+
+        .input {
+            width: 100%;
+            min-height: 54px;
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            background: var(--surface);
+            color: var(--text);
+            padding: 14px 16px;
+            outline: none;
+            font: inherit;
+        }
+
+        .input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 20%, transparent 80%);
+        }
+
+        .btn {
+            min-height: 54px;
+            padding: 0 20px;
+            border-radius: 15px;
+            border: 0;
+            cursor: pointer;
+            font-weight: 800;
+            font: inherit;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-2));
+            color: #000;
+            box-shadow: var(--shadow);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.97);
+        }
+
+        .helper {
+            margin: 12px 0 0;
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        /* ── resultados ── */
+        .section {
+            padding: 0 28px 28px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .result-card,
+        .empty-card {
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 22px;
+            background: color-mix(in srgb, var(--surface) 92%, transparent 8%);
+        }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            font-weight: 800;
+            margin-bottom: 14px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .status-default {
+            background: color-mix(in srgb, var(--primary) 18%, var(--surface) 82%);
+            color: var(--primary);
+        }
+        .status-warning {
+            background: color-mix(in srgb, var(--warning) 18%, var(--surface) 82%);
+            color: var(--warning);
+        }
+        .status-success {
+            background: color-mix(in srgb, var(--success) 18%, var(--surface) 82%);
+            color: var(--success);
+        }
+        .status-danger {
+            background: color-mix(in srgb, var(--danger) 18%, var(--surface) 82%);
+            color: var(--danger);
+        }
+
+        .title {
+            margin: 0 0 8px;
+            font-size: clamp(1.25rem, 3vw, 1.9rem);
+            line-height: 1.1;
+            color: var(--text);
+        }
+
+        .subtitle {
+            margin: 0 0 18px;
+            color: var(--muted);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .item {
+            padding: 15px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            background: color-mix(in srgb, var(--surface-2) 58%, var(--surface) 42%);
+        }
+
+        .item span {
+            display: block;
+            color: var(--muted);
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+        }
+
+        .item strong {
+            color: var(--text);
+        }
+
+        .notice {
+            margin-top: 16px;
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            background: color-mix(in srgb, var(--primary) 8%, var(--surface) 92%);
+            color: var(--muted);
+            padding: 14px 16px;
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .btn-wa {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 48px;
+            padding: 0 18px;
+            border-radius: 14px;
+            text-decoration: none;
+            font-weight: 800;
+            background: #00e676;
+            color: #000;
+        }
+
+        /* ── responsive ── */
+        @media (max-width: 640px) {
+            .top,
+            .search-box,
+            .section {
+                padding-left: 18px;
+                padding-right: 18px;
+            }
+            .row,
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            .btn {
+                width: 100%;
+            }
+            .brand-mark {
+                width: 44px;
+                height: 44px;
+            }
+            .brand h1 {
+                font-size: 1.2rem;
+            }
+        }
+
+        @media (min-width: 641px) and (max-width: 1024px) {
+            .shell {
+                width: min(680px, 100%);
+            }
+            .grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (min-width: 1025px) {
+            .shell {
+                width: 760px;
+            }
+            .grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
-  <main class="shell">
-    <section class="card">
-      <div class="top">
-        <div class="brand">
-          <div class="brand-mark" aria-hidden="true">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="7" y="2" width="10" height="20" rx="2"></rect>
-              <path d="M10 6h4"></path>
-              <path d="M11 18h2"></path>
-            </svg>
-          </div>
-          <div>
-            <h1 id="brandName">Seguimiento de reparaciones</h1>
-            <p id="brandText">Consulta el estado de tu equipo con tu código o teléfono.</p>
-          </div>
-        </div>
-      </div>
+    <main class="shell">
+        <section class="card">
 
-      <div class="search-box">
-        <div class="search-panel">
-          <div class="badge">Consultar reparación</div>
-          <label for="searchInput">Ingresa tu código o tu teléfono</label>
-          <div class="row">
-            <input id="searchInput" class="input" type="text" placeholder="Ejemplo: R-001 o 88887777" autocomplete="off" />
-            <button id="searchBtn" class="btn btn-primary" type="button">Consultar</button>
-          </div>
-          <p class="helper" id="sheetStatus">Listo para consultar. Si no aparecen datos, revisa que la hoja esté bien conectada.</p>
-        </div>
-      </div>
+            <!-- header -->
+            <div class="top">
+                <div class="brand">
+                    <div class="brand-mark" aria-hidden="true">
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="7" y="2" width="10" height="20" rx="2"></rect>
+                            <path d="M10 6h4"></path>
+                            <path d="M11 18h2"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 id="brandName">Seguimiento de reparaciones</h1>
+                        <p id="brandText">Consulta el estado de tu equipo con tu código o teléfono.</p>
+                    </div>
+                </div>
+            </div>
 
-      <div class="section hidden" id="resultSection">
-        <div class="result-card">
-          <div id="statusBadge" class="status status-default"><span class="dot"></span><span id="statusText">Estado</span></div>
-          <h2 class="title" id="resultTitle">Cliente</h2>
-          <p class="subtitle" id="resultSubtitle">Detalle de reparación</p>
-          <div class="grid" id="resultGrid"></div>
-          <div class="notice" id="resultNotice">La fecha estimada puede cambiar según pruebas, carga de trabajo o disponibilidad de repuestos.</div>
-          <div class="actions" id="resultActions"></div>
-        </div>
-      </div>
+            <!-- buscador -->
+            <div class="search-box">
+                <div class="search-panel">
+                    <div class="badge">Consultar reparación</div>
+                    <label for="searchInput">Ingresa tu código o tu teléfono</label>
+                    <div class="row">
+                        <input id="searchInput" class="input" type="text" placeholder="Ejemplo: R-001 o 88887777" autocomplete="off" />
+                        <button id="searchBtn" class="btn btn-primary" type="button">Consultar</button>
+                    </div>
+                    <p class="helper" id="sheetStatus">Listo para consultar.</p>
+                </div>
+            </div>
 
-      <div class="section hidden" id="emptySection">
-        <div class="empty-card">
-          <div class="badge">Sin resultado</div>
-          <h2 class="title">No encontré esa reparación.</h2>
-          <p class="subtitle" style="margin-bottom:0;">Revisa el código o el teléfono y vuelve a intentarlo.</p>
-        </div>
-      </div>
+            <!-- resultado -->
+            <div class="section hidden" id="resultSection">
+                <div class="result-card">
+                    <div id="statusBadge" class="status status-default"><span class="dot"></span><span id="statusText">Estado</span></div>
+                    <h2 class="title" id="resultTitle">Cliente</h2>
+                    <p class="subtitle" id="resultSubtitle">Detalle de reparación</p>
+                    <div class="grid" id="resultGrid"></div>
+                    <div class="notice" id="resultNotice">La fecha estimada puede cambiar según pruebas, carga de trabajo o disponibilidad de repuestos.</div>
+                    <div class="actions" id="resultActions"></div>
+                </div>
+            </div>
 
-    </section>
-  </main>
+            <!-- vacío -->
+            <div class="section hidden" id="emptySection">
+                <div class="empty-card">
+                    <div class="badge">Sin resultado</div>
+                    <h2 class="title">No encontré esa reparación.</h2>
+                    <p class="subtitle" style="margin-bottom:0;">Revisa el código o el teléfono y vuelve a intentarlo.</p>
+                </div>
+            </div>
 
-  <script>
-    const BUSINESS_NAME = 'CELULARES JOSEDAN';
-    const BUSINESS_TEXT = 'Consulta el estado de tu reparación con tu código o teléfono.';
-    // Se añade un timestamp para forzar la recarga de la hoja
-    const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ5dzViUATaZXgTdRXiAIG6ARCw9LrnWCWysGSurbGKvGr8EQTwhY7We8xdqIxISR47FRfZ_-Jk4Oum/pub?gid=462698169&single=true&output=csv&t=' + Date.now();
-    const DEFAULT_WHATSAPP = '';
+        </section>
+    </main>
 
-    const dom = {
-      brandName: document.getElementById('brandName'),
-      brandText: document.getElementById('brandText'),
-      searchInput: document.getElementById('searchInput'),
-      searchBtn: document.getElementById('searchBtn'),
-      sheetStatus: document.getElementById('sheetStatus'),
-      resultSection: document.getElementById('resultSection'),
-      emptySection: document.getElementById('emptySection'),
-      statusBadge: document.getElementById('statusBadge'),
-      statusText: document.getElementById('statusText'),
-      resultTitle: document.getElementById('resultTitle'),
-      resultSubtitle: document.getElementById('resultSubtitle'),
-      resultGrid: document.getElementById('resultGrid'),
-      resultNotice: document.getElementById('resultNotice'),
-      resultActions: document.getElementById('resultActions')
-    };
+    <script>
+        // ─── CONFIGURACIÓN ──────────────────────────────────────────────
+        const BUSINESS_NAME = 'CELULARES JOSEDAN';
+        const BUSINESS_TEXT = 'Consulta el estado de tu reparación con tu código o teléfono.';
+        const SHEET_URL =
+            'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ5dzViUATaZXgTdRXiAIG6ARCw9LrnWCWysGSurbGKvGr8EQTwhY7We8xdqIxISR47FRfZ_-Jk4Oum/pub?gid=462698169&single=true&output=csv';
+        const DEFAULT_WHATSAPP = '';
 
-    let records = [];
+        // ─── DOM ──────────────────────────────────────────────────────
+        const dom = {
+            brandName: document.getElementById('brandName'),
+            brandText: document.getElementById('brandText'),
+            searchInput: document.getElementById('searchInput'),
+            searchBtn: document.getElementById('searchBtn'),
+            sheetStatus: document.getElementById('sheetStatus'),
+            resultSection: document.getElementById('resultSection'),
+            emptySection: document.getElementById('emptySection'),
+            statusBadge: document.getElementById('statusBadge'),
+            statusText: document.getElementById('statusText'),
+            resultTitle: document.getElementById('resultTitle'),
+            resultSubtitle: document.getElementById('resultSubtitle'),
+            resultGrid: document.getElementById('resultGrid'),
+            resultNotice: document.getElementById('resultNotice'),
+            resultActions: document.getElementById('resultActions')
+        };
 
-    dom.brandName.textContent = BUSINESS_NAME;
-    dom.brandText.textContent = BUSINESS_TEXT;
-    document.title = BUSINESS_NAME;
+        let records = [];
 
-    loadSheetData();
+        dom.brandName.textContent = BUSINESS_NAME;
+        dom.brandText.textContent = BUSINESS_TEXT;
+        document.title = BUSINESS_NAME;
 
-    dom.searchBtn.addEventListener('click', runSearch);
-    dom.searchInput.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter') runSearch();
-    });
+        // ─── carga inicial ────────────────────────────────────────────
+        loadSheetData();
 
-    async function loadSheetData() {
-      if (!SHEET_URL || SHEET_URL.includes('PEGA_AQUI')) {
-        dom.sheetStatus.textContent = 'Falta conectar la hoja. Abre index.html y pega tu enlace CSV en SHEET_URL.';
-        return;
-      }
-
-      dom.sheetStatus.textContent = 'Cargando registros...';
-      try {
-        const response = await fetch(SHEET_URL, { cache: 'no-store' });
-        if (!response.ok) throw new Error('No se pudo leer la hoja');
-        const csv = await response.text();
-        const parsed = csvToObjects(csv);
-        records = parsed.map(normalizeRecord).filter(item => item.codigo || item.telefono);
-        dom.sheetStatus.textContent = 'Escribe tu código o teléfono para consultar.';
-        loadQueryFromUrl();
-      } catch (error) {
-        records = [];
-        dom.sheetStatus.textContent = 'No pude leer la hoja. Revisa el enlace CSV publicado.';
-      }
-    }
-
-    function runSearch() {
-      hideResults();
-      const query = dom.searchInput.value.trim();
-      if (!query) {
-        dom.sheetStatus.textContent = 'Primero escribe tu código o teléfono.';
-        return;
-      }
-      if (!records.length) {
-        dom.sheetStatus.textContent = 'No hay datos cargados todavía.';
-        return;
-      }
-
-      const normalizedQuery = normalizeText(query);
-      const normalizedPhone = normalizePhone(query);
-
-      const match = records.find(item => {
-        const byCode = item.codigo_normalizado && item.codigo_normalizado === normalizedQuery;
-        const byPhone = item.telefono_normalizado && item.telefono_normalizado.endsWith(normalizedPhone);
-        return byCode || byPhone;
-      }) || records.find(item => {
-        const byCodePartial = item.codigo_normalizado && item.codigo_normalizado.includes(normalizedQuery);
-        const byPhonePartial = normalizedPhone && item.telefono_normalizado && item.telefono_normalizado.includes(normalizedPhone);
-        return byCodePartial || byPhonePartial;
-      });
-
-      if (!match) {
-        updateQueryParam(query);
-        dom.emptySection.classList.remove('hidden');
-        return;
-      }
-
-      updateQueryParam(match.codigo || query);
-      renderResult(match);
-    }
-
-
-    function loadQueryFromUrl() {
-      const params = new URLSearchParams(window.location.search);
-      const code = params.get('codigo') || params.get('buscar') || '';
-      if (!code) return;
-      dom.searchInput.value = code;
-      runSearch();
-    }
-
-    function updateQueryParam(value) {
-      const url = new URL(window.location.href);
-      url.searchParams.set('codigo', value);
-      window.history.replaceState({}, '', url.toString());
-    }
-
-    function renderResult(item) {
-      dom.resultSection.classList.remove('hidden');
-      dom.emptySection.classList.add('hidden');
-
-      const statusClass = getStatusClass(item.estado);
-      dom.statusBadge.className = `status ${statusClass}`;
-      dom.statusText.textContent = item.estado || 'Estado no definido';
-      dom.resultTitle.textContent = item.cliente || 'Cliente';
-      dom.resultSubtitle.textContent = `${item.equipo || 'Equipo'}${item.modelo ? ' · ' + item.modelo : ''}${item.reparacion ? ' · ' + item.reparacion : ''}`;
-      dom.resultNotice.textContent = item.notas || 'La fecha estimada puede cambiar según pruebas, carga de trabajo o disponibilidad de repuestos.';
-
-      const fields = [
-        ['Código', item.codigo],
-        ['Marca', item.marca],
-        ['Modelo', item.modelo],
-        ['Equipo', item.equipo],
-        ['Reparación', item.reparacion],
-        ['Fecha estimada', item.fecha_estimada],
-        ['Técnico', item.tecnico]
-      ].filter(([, value]) => value);
-
-      dom.resultGrid.innerHTML = fields.map(([label, value]) => `
-        <div class="item">
-          <span>${escapeHtml(label)}</span>
-          <strong>${escapeHtml(value)}</strong>
-        </div>
-      `).join('');
-
-      const wa = normalizePhone(item.whatsapp || DEFAULT_WHATSAPP);
-      dom.resultActions.innerHTML = wa
-        ? `<a class="btn-wa" href="https://wa.me/${wa}?text=${encodeURIComponent('Hola, quiero consultar mi reparación ' + (item.codigo || ''))}" target="_blank" rel="noopener noreferrer">Escribir por WhatsApp</a>`
-        : '';
-    }
-
-    function hideResults() {
-      dom.resultSection.classList.add('hidden');
-      dom.emptySection.classList.add('hidden');
-    }
-
-    function normalizeRecord(record) {
-      return {
-        codigo: firstValue(record, ['codigo', 'código', 'orden', 'ticket']),
-        cliente: firstValue(record, ['cliente', 'nombre']),
-        telefono: firstValue(record, ['telefono', 'teléfono', 'celular', 'whatsapp_cliente']),
-        equipo: firstValue(record, ['equipo', 'dispositivo']),
-        marca: firstValue(record, ['marca']),
-        modelo: firstValue(record, ['modelo']),
-        reparacion: firstValue(record, ['reparacion', 'reparación', 'servicio', 'trabajo']),
-        estado: firstValue(record, ['estado', 'estatus']),
-        fecha_estimada: firstValue(record, ['fecha_estimada', 'fecha estimada', 'entrega', 'fecha_entrega']),
-        notas: firstValue(record, ['notas', 'observaciones', 'detalle', 'comentarios']),
-        tecnico: firstValue(record, ['tecnico', 'técnico', 'responsable']),
-        whatsapp: firstValue(record, ['whatsapp', 'telefono_taller', 'tel_taller']),
-        codigo_normalizado: normalizeText(firstValue(record, ['codigo', 'código', 'orden', 'ticket'])),
-        telefono_normalizado: normalizePhone(firstValue(record, ['telefono', 'teléfono', 'celular', 'whatsapp_cliente']))
-      };
-    }
-
-    function firstValue(record, keys) {
-      for (const key of keys) {
-        if (record[key] != null && String(record[key]).trim() !== '') return String(record[key]).trim();
-      }
-      return '';
-    }
-
-    function normalizeText(value) {
-      return String(value || '')
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .toLowerCase()
-        .trim();
-    }
-
-    function normalizePhone(value) {
-      return String(value || '').replace(/\D+/g, '');
-    }
-
-    function getStatusClass(status) {
-      const text = normalizeText(status);
-      if (text.includes('listo') || text.includes('entregado') || text.includes('finalizado')) return 'status-success';
-      if (text.includes('cancelado')) return 'status-danger';
-      if (text.includes('diagnostico') || text.includes('revision') || text.includes('reparacion') || text.includes('recibido') || text.includes('esperando') || text.includes('repuesto')) return 'status-warning';
-      return 'status-default';
-    }
-
-    function csvToObjects(csvText) {
-      const rows = parseCSV(csvText).filter(row => row.some(cell => String(cell).trim() !== ''));
-      if (!rows.length) return [];
-      const headers = rows[0].map(header => normalizeText(header).replace(/\s+/g, '_'));
-      return rows.slice(1).map(row => {
-        const item = {};
-        headers.forEach((header, index) => {
-          item[header] = (row[index] || '').trim();
+        dom.searchBtn.addEventListener('click', runSearch);
+        dom.searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') runSearch();
         });
-        return item;
-      });
-    }
 
-    function parseCSV(text) {
-      const rows = [];
-      let row = [];
-      let value = '';
-      let inQuotes = false;
-      for (let i = 0; i < text.length; i++) {
-        const char = text[i];
-        const next = text[i + 1];
-        if (char === '"') {
-          if (inQuotes && next === '"') {
-            value += '"';
-            i++;
-          } else {
-            inQuotes = !inQuotes;
-          }
-        } else if (char === ',' && !inQuotes) {
-          row.push(value);
-          value = '';
-        } else if ((char === '\n' || char === '\r') && !inQuotes) {
-          if (char === '\r' && next === '\n') i++;
-          row.push(value);
-          rows.push(row);
-          row = [];
-          value = '';
-        } else {
-          value += char;
+        // ─── carga hoja (sin caché) ──────────────────────────────────
+        async function loadSheetData() {
+            if (!SHEET_URL || SHEET_URL.includes('PEGA_AQUI')) {
+                dom.sheetStatus.textContent = 'Falta conectar la hoja. Edita SHEET_URL con tu enlace CSV.';
+                return;
+            }
+
+            dom.sheetStatus.textContent = 'Cargando registros…';
+            try {
+                // cache-busting
+                const url = SHEET_URL + (SHEET_URL.includes('?') ? '&' : '?') + '_=' + Date.now();
+                const response = await fetch(url, { cache: 'no-store' });
+                if (!response.ok) throw new Error('No se pudo leer la hoja');
+                const csv = await response.text();
+                const parsed = csvToObjects(csv);
+                records = parsed.map(normalizeRecord).filter(item => item.codigo || item.telefono);
+                dom.sheetStatus.textContent = 'Escribe tu código o teléfono para consultar.';
+            } catch (_) {
+                records = [];
+                dom.sheetStatus.textContent = 'No pude leer la hoja. Revisa el enlace CSV publicado.';
+            }
         }
-      }
-      if (value.length > 0 || row.length > 0) {
-        row.push(value);
-        rows.push(row);
-      }
-      return rows;
-    }
 
-    function escapeHtml(value) {
-      return String(value)
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#39;');
-    }
-  </script>
+        // ─── búsqueda ──────────────────────────────────────────────────
+        function runSearch() {
+            hideResults();
+            const query = dom.searchInput.value.trim();
+            if (!query) {
+                dom.sheetStatus.textContent = 'Primero escribe tu código o teléfono.';
+                return;
+            }
+            if (!records.length) {
+                dom.sheetStatus.textContent = 'No hay datos cargados todavía.';
+                return;
+            }
+
+            const normalizedQuery = normalizeText(query);
+            const normalizedPhone = normalizePhone(query);
+
+            // búsqueda exacta primero
+            let match = records.find(item => {
+                const byCode = item.codigo_normalizado && item.codigo_normalizado === normalizedQuery;
+                const byPhone = item.telefono_normalizado && normalizedPhone &&
+                    item.telefono_normalizado.endsWith(normalizedPhone);
+                return byCode || byPhone;
+            });
+
+            // fallback: búsqueda parcial
+            if (!match) {
+                match = records.find(item => {
+                    const byCodePartial = item.codigo_normalizado &&
+                        item.codigo_normalizado.includes(normalizedQuery);
+                    const byPhonePartial = normalizedPhone && item.telefono_normalizado &&
+                        item.telefono_normalizado.includes(normalizedPhone);
+                    return byCodePartial || byPhonePartial;
+                });
+            }
+
+            if (!match) {
+                dom.emptySection.classList.remove('hidden');
+                return;
+            }
+
+            renderResult(match);
+        }
+
+        // ─── render ────────────────────────────────────────────────────
+        function renderResult(item) {
+            dom.resultSection.classList.remove('hidden');
+            dom.emptySection.classList.add('hidden');
+
+            const statusClass = getStatusClass(item.estado);
+            dom.statusBadge.className = 'status ' + statusClass;
+            dom.statusText.textContent = item.estado || 'Estado no definido';
+            dom.resultTitle.textContent = item.cliente || 'Cliente';
+            dom.resultSubtitle.textContent =
+                [item.equipo, item.modelo ? '· ' + item.modelo : '', item.reparacion ? '· ' + item.reparacion : '']
+                .filter(Boolean).join(' ') || 'Detalle de reparación';
+            dom.resultNotice.textContent = item.notas ||
+                'La fecha estimada puede cambiar según pruebas, carga de trabajo o disponibilidad de repuestos.';
+
+            const fields = [
+                ['Código', item.codigo],
+                ['Marca', item.marca],
+                ['Modelo', item.modelo],
+                ['Equipo', item.equipo],
+                ['Reparación', item.reparacion],
+                ['Fecha estimada', item.fecha_estimada],
+                ['Técnico', item.tecnico]
+            ].filter(([, v]) => v);
+
+            dom.resultGrid.innerHTML = fields.map(([label, value]) =>
+                `<div class="item"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`
+            ).join('');
+
+            const wa = normalizePhone(item.whatsapp || DEFAULT_WHATSAPP);
+            dom.resultActions.innerHTML = wa ?
+                `<a class="btn-wa" href="https://wa.me/${wa}?text=${encodeURIComponent('Hola, quiero consultar mi reparación ' + (item.codigo || ''))}" target="_blank" rel="noopener noreferrer">Escribir por WhatsApp</a>` :
+                '';
+        }
+
+        function hideResults() {
+            dom.resultSection.classList.add('hidden');
+            dom.emptySection.classList.add('hidden');
+        }
+
+        // ─── normalización ────────────────────────────────────────────
+        function normalizeRecord(record) {
+            return {
+                codigo: firstValue(record, ['codigo', 'código', 'orden', 'ticket']),
+                cliente: firstValue(record, ['cliente', 'nombre']),
+                telefono: firstValue(record, ['telefono', 'teléfono', 'celular', 'whatsapp_cliente']),
+                equipo: firstValue(record, ['equipo', 'dispositivo']),
+                marca: firstValue(record, ['marca']),
+                modelo: firstValue(record, ['modelo']),
+                reparacion: firstValue(record, ['reparacion', 'reparación', 'servicio', 'trabajo']),
+                estado: firstValue(record, ['estado', 'estatus']),
+                fecha_estimada: firstValue(record, ['fecha_estimada', 'fecha estimada', 'entrega', 'fecha_entrega']),
+                notas: firstValue(record, ['notas', 'observaciones', 'detalle', 'comentarios']),
+                tecnico: firstValue(record, ['tecnico', 'técnico', 'responsable']),
+                whatsapp: firstValue(record, ['whatsapp', 'telefono_taller', 'tel_taller']),
+                codigo_normalizado: normalizeText(firstValue(record, ['codigo', 'código', 'orden', 'ticket'])),
+                telefono_normalizado: normalizePhone(firstValue(record, ['telefono', 'teléfono', 'celular',
+                    'whatsapp_cliente'
+                ]))
+            };
+        }
+
+        function firstValue(record, keys) {
+            for (const k of keys) {
+                const v = record[k];
+                if (v != null && String(v).trim() !== '') return String(v).trim();
+            }
+            return '';
+        }
+
+        function normalizeText(v) {
+            return String(v || '')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase()
+                .trim();
+        }
+
+        function normalizePhone(v) {
+            return String(v || '').replace(/\D+/g, '');
+        }
+
+        function getStatusClass(status) {
+            const t = normalizeText(status);
+            if (t.includes('listo') || t.includes('entregado') || t.includes('finalizado')) return 'status-success';
+            if (t.includes('cancelado')) return 'status-danger';
+            if (t.includes('diagnostico') || t.includes('revision') || t.includes('reparacion') ||
+                t.includes('recibido') || t.includes('esperando') || t.includes('repuesto')) return 'status-warning';
+            return 'status-default';
+        }
+
+        // ─── CSV ──────────────────────────────────────────────────────
+        function csvToObjects(csvText) {
+            const rows = parseCSV(csvText).filter(row => row.some(cell => String(cell).trim() !== ''));
+            if (!rows.length) return [];
+            const headers = rows[0].map(h => normalizeText(h).replace(/\s+/g, '_'));
+            return rows.slice(1).map(row => {
+                const obj = {};
+                headers.forEach((h, i) => { obj[h] = (row[i] || '').trim(); });
+                return obj;
+            });
+        }
+
+        function parseCSV(text) {
+            const rows = [];
+            let row = [],
+                val = '',
+                inQuotes = false;
+            for (let i = 0; i < text.length; i++) {
+                const c = text[i],
+                    n = text[i + 1];
+                if (c === '"') {
+                    if (inQuotes && n === '"') { val += '"';
+                        i++; } else { inQuotes = !inQuotes; }
+                } else if (c === ',' && !inQuotes) {
+                    row.push(val);
+                    val = '';
+                } else if ((c === '\n' || c === '\r') && !inQuotes) {
+                    if (c === '\r' && n === '\n') i++;
+                    row.push(val);
+                    rows.push(row);
+                    row = [];
+                    val = '';
+                } else {
+                    val += c;
+                }
+            }
+            if (val.length > 0 || row.length > 0) { row.push(val);
+                rows.push(row); }
+            return rows;
+        }
+
+        function escapeHtml(v) {
+            return String(v)
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#39;');
+        }
+
+        // ─── NADA DE URL PARAMS ──────────────────────────────────────
+        // se eliminó loadQueryFromUrl() y updateQueryParam()
+        // la URL siempre permanece limpia.
+    </script>
 </body>
 </html>
