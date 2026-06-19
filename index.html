@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-theme="light">
+<html lang="es" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,34 +10,20 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #f4f7fb;
-      --surface: #ffffff;
-      --surface-2: #eef4ff;
-      --border: rgba(15, 23, 42, 0.09);
-      --text: #0f172a;
-      --muted: #475569;
-      --primary: #0f766e;
-      --primary-2: #115e59;
-      --success: #166534;
-      --warning: #b45309;
-      --danger: #b91c1c;
-      --shadow: 0 16px 40px rgba(2, 8, 23, 0.08);
+      --bg: #0a0a0a;
+      --surface: #161616;
+      --surface-2: #212121;
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #f0f0f0;
+      --muted: #a8a8a8;
+      --primary: #00e5ff;
+      --primary-2: #00b8d4;
+      --success: #76ff03;
+      --warning: #ffea00;
+      --danger: #ff1744;
+      --shadow: 0 16px 40px rgba(0, 0, 0, 0.85);
       --radius: 22px;
       --radius-sm: 14px;
-    }
-    [data-theme="dark"] {
-      --bg: #08111f;
-      --surface: #111827;
-      --surface-2: #172033;
-      --border: rgba(255,255,255,0.08);
-      --text: #e5eefc;
-      --muted: #94a3b8;
-      --primary: #2dd4bf;
-      --primary-2: #14b8a6;
-      --success: #4ade80;
-      --warning: #fbbf24;
-      --danger: #f87171;
-      --shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
     }
     * { box-sizing: border-box; }
     body {
@@ -46,8 +32,8 @@
       font-family: 'Inter', system-ui, sans-serif;
       color: var(--text);
       background:
-        radial-gradient(circle at top left, color-mix(in srgb, var(--primary) 12%, transparent 88%), transparent 32%),
-        linear-gradient(180deg, var(--bg) 0%, color-mix(in srgb, var(--bg) 84%, #dbeafe 16%) 100%);
+        radial-gradient(circle at top left, color-mix(in srgb, var(--primary) 10%, transparent 90%), transparent 32%),
+        linear-gradient(180deg, var(--bg) 0%, #0d0d0d 100%);
       display: grid;
       place-items: center;
       padding: 20px;
@@ -81,7 +67,7 @@
       display: grid;
       place-items: center;
       background: linear-gradient(135deg, var(--primary), var(--primary-2));
-      color: #fff;
+      color: #000;
       flex: 0 0 auto;
     }
     .brand h1 {
@@ -89,20 +75,12 @@
       font-size: clamp(1.4rem, 4vw, 2rem);
       line-height: 1.05;
       letter-spacing: -0.03em;
+      color: var(--text);
     }
     .brand p {
       margin: 6px 0 0;
       color: var(--muted);
       font-size: 0.98rem;
-    }
-    .theme-btn {
-      min-width: 46px;
-      min-height: 46px;
-      border-radius: 14px;
-      border: 1px solid var(--border);
-      background: var(--surface);
-      color: var(--text);
-      cursor: pointer;
     }
     .search-box {
       padding: 18px 28px 28px;
@@ -119,8 +97,8 @@
       gap: 8px;
       padding: 8px 12px;
       border-radius: 999px;
-      background: color-mix(in srgb, var(--primary) 10%, var(--surface) 90%);
-      color: var(--primary-2);
+      background: color-mix(in srgb, var(--primary) 18%, var(--surface) 82%);
+      color: var(--primary);
       font-weight: 800;
       font-size: 0.9rem;
       margin-bottom: 14px;
@@ -129,6 +107,7 @@
       display: block;
       font-weight: 700;
       margin-bottom: 10px;
+      color: var(--text);
     }
     .row {
       display: grid;
@@ -148,7 +127,7 @@
     }
     .input:focus {
       border-color: var(--primary);
-      box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 12%, transparent 88%);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 20%, transparent 80%);
     }
     .btn {
       min-height: 54px;
@@ -161,7 +140,7 @@
     }
     .btn-primary {
       background: linear-gradient(135deg, var(--primary), var(--primary-2));
-      color: #fff;
+      color: #000;
       box-shadow: var(--shadow);
     }
     .helper {
@@ -194,14 +173,15 @@
       border-radius: 50%;
       background: currentColor;
     }
-    .status-default { background: color-mix(in srgb, var(--primary) 12%, var(--surface) 88%); color: var(--primary-2); }
-    .status-warning { background: color-mix(in srgb, var(--warning) 12%, var(--surface) 88%); color: var(--warning); }
-    .status-success { background: color-mix(in srgb, var(--success) 12%, var(--surface) 88%); color: var(--success); }
-    .status-danger { background: color-mix(in srgb, var(--danger) 12%, var(--surface) 88%); color: var(--danger); }
+    .status-default { background: color-mix(in srgb, var(--primary) 18%, var(--surface) 82%); color: var(--primary); }
+    .status-warning { background: color-mix(in srgb, var(--warning) 18%, var(--surface) 82%); color: var(--warning); }
+    .status-success { background: color-mix(in srgb, var(--success) 18%, var(--surface) 82%); color: var(--success); }
+    .status-danger { background: color-mix(in srgb, var(--danger) 18%, var(--surface) 82%); color: var(--danger); }
     .title {
       margin: 0 0 8px;
       font-size: clamp(1.25rem, 3vw, 1.9rem);
       line-height: 1.1;
+      color: var(--text);
     }
     .subtitle {
       margin: 0 0 18px;
@@ -224,11 +204,14 @@
       font-size: 0.9rem;
       margin-bottom: 4px;
     }
+    .item strong {
+      color: var(--text);
+    }
     .notice {
       margin-top: 16px;
       border: 1px solid var(--border);
       border-radius: 15px;
-      background: color-mix(in srgb, var(--primary) 7%, var(--surface) 93%);
+      background: color-mix(in srgb, var(--primary) 8%, var(--surface) 92%);
       color: var(--muted);
       padding: 14px 16px;
     }
@@ -247,17 +230,11 @@
       border-radius: 14px;
       text-decoration: none;
       font-weight: 800;
-      background: #16a34a;
-      color: #fff;
-    }
-    .footer {
-      padding: 0 28px 26px;
-      color: var(--muted);
-      font-size: 0.92rem;
-      text-align: center;
+      background: #00e676;
+      color: #000;
     }
     @media (max-width: 640px) {
-      .top, .search-box, .section, .footer { padding-left: 18px; padding-right: 18px; }
+      .top, .search-box, .section { padding-left: 18px; padding-right: 18px; }
       .row, .grid { grid-template-columns: 1fr; }
       .btn { width: 100%; }
     }
@@ -280,7 +257,6 @@
             <p id="brandText">Consulta el estado de tu equipo con tu código o teléfono.</p>
           </div>
         </div>
-        <button type="button" id="themeToggle" class="theme-btn" aria-label="Cambiar tema">🌙</button>
       </div>
 
       <div class="search-box">
@@ -314,9 +290,6 @@
         </div>
       </div>
 
-      <div class="footer">
-        Estado en línea para clientes.
-      </div>
     </section>
   </main>
 
@@ -329,7 +302,6 @@
     const dom = {
       brandName: document.getElementById('brandName'),
       brandText: document.getElementById('brandText'),
-      themeToggle: document.getElementById('themeToggle'),
       searchInput: document.getElementById('searchInput'),
       searchBtn: document.getElementById('searchBtn'),
       sheetStatus: document.getElementById('sheetStatus'),
@@ -350,27 +322,12 @@
     dom.brandText.textContent = BUSINESS_TEXT;
     document.title = BUSINESS_NAME;
 
-    initTheme();
     loadSheetData();
 
     dom.searchBtn.addEventListener('click', runSearch);
     dom.searchInput.addEventListener('keydown', (event) => {
       if (event.key === 'Enter') runSearch();
     });
-
-    function initTheme() {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setTheme(prefersDark ? 'dark' : 'light');
-      dom.themeToggle.addEventListener('click', () => {
-        const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-        setTheme(next);
-      });
-    }
-
-    function setTheme(theme) {
-      document.documentElement.setAttribute('data-theme', theme);
-      dom.themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
-    }
 
     async function loadSheetData() {
       if (!SHEET_URL || SHEET_URL.includes('PEGA_AQUI')) {
