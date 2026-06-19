@@ -321,8 +321,8 @@
   </main>
 
   <script>
-    const BUSINESS_NAME = 'Seguimiento de reparaciones';
-    const BUSINESS_TEXT = 'Consulta el estado de tu equipo con tu código o teléfono.';
+    const BUSINESS_NAME = 'CELULARES JOSEDAN';
+    const BUSINESS_TEXT = 'Consulta el estado de tu reparación con tu código o teléfono.';
     const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ5dzViUATaZXgTdRXiAIG6ARCw9LrnWCWysGSurbGKvGr8EQTwhY7We8xdqIxISR47FRfZ_-Jk4Oum/pub?gid=462698169&single=true&output=csv';
     const DEFAULT_WHATSAPP = '';
 
@@ -386,6 +386,7 @@
         const parsed = csvToObjects(csv);
         records = parsed.map(normalizeRecord).filter(item => item.codigo || item.telefono);
         dom.sheetStatus.textContent = 'Escribe tu código o teléfono para consultar.';
+        loadQueryFromUrl();
       } catch (error) {
         records = [];
         dom.sheetStatus.textContent = 'No pude leer la hoja. Revisa el enlace CSV publicado.';
@@ -418,11 +419,28 @@
       });
 
       if (!match) {
+        updateQueryParam(query);
         dom.emptySection.classList.remove('hidden');
         return;
       }
 
+      updateQueryParam(match.codigo || query);
       renderResult(match);
+    }
+
+
+    function loadQueryFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get('codigo') || params.get('buscar') || '';
+      if (!code) return;
+      dom.searchInput.value = code;
+      runSearch();
+    }
+
+    function updateQueryParam(value) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('codigo', value);
+      window.history.replaceState({}, '', url.toString());
     }
 
     function renderResult(item) {
